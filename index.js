@@ -41,13 +41,13 @@ async function loadSettings() {
 async function fetchTags() {
     try {
         // Prefer POST per spec; fallback to GET if blocked
-        let response = await fetch(API_ENDPOINT_TAGS, {
+        let response = await fetch(`/api/plugins/st-proxy-plugin/fetch?url=${encodeURIComponent(API_ENDPOINT_TAGS)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({})
         });
         if (!response.ok) {
-            response = await fetch(`${API_ENDPOINT_TAGS}?limit=5000`, { method: "GET" });
+            response = await fetch(`/api/plugins/st-proxy-plugin/fetch?url=${encodeURIComponent(`${API_ENDPOINT_TAGS}?limit=5000`)}`, { method: "GET" });
         }
         if (!response.ok) throw new Error(`Tag fetch failed: ${response.status}`);
         const data = await response.json();
@@ -170,8 +170,11 @@ async function fetchCharactersBySearch({ searchTerm, includeTags = [], excludeTa
     url.searchParams.append("first", String(first));
     url.searchParams.append("nsfw", String(nsfw));
 
+    const proxyUrl = new URL(`http://localhost/api/plugins/st-proxy-plugin/fetch`); // Use a dummy base for URL object
+    proxyUrl.searchParams.append("url", url.toString()); // Pass the original full URL as a parameter
+
     try {
-        const res = await fetch(url.toString());
+        const res = await fetch(proxyUrl.toString());
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         const data = await res.json();
         const nodes = data?.data?.nodes || [];
@@ -195,10 +198,10 @@ async function fetchCharactersBySearch({ searchTerm, includeTags = [], excludeTa
 async function downloadCharacter(fullPath, cardUrl) {
     try {
         let target = cardUrl && cardUrl.length ? cardUrl : `https://avatars.charhub.io/avatars/${fullPath}/chara_card_v2.png`;
-        let res = await fetch(target);
+        let res = await fetch(`/api/plugins/st-proxy-plugin/fetch?url=${encodeURIComponent(target)}`);
         if (!res.ok) {
             const alt = `https://avatars.charhub.io/avatars/${fullPath}/avatar.webp`;
-            res = await fetch(alt);
+            res = await fetch(`/api/plugins/st-proxy-plugin/fetch?url=${encodeURIComponent(alt)}`);
         }
         if (!res.ok) throw new Error("Failed to fetch character image");
         const blob = await res.blob();
