@@ -170,7 +170,7 @@ async function fetchCharactersBySearch({ searchTerm, includeTags = [], excludeTa
     url.searchParams.append("first", String(first));
     url.searchParams.append("nsfw", String(nsfw));
 
-    const proxyUrl = new URL(`http://localhost/api/plugins/st-proxy-plugin/fetch`); // Use a dummy base for URL object
+    const proxyUrl = new URL(`/api/plugins/st-proxy-plugin/fetch`, window.location.origin);
     proxyUrl.searchParams.append("url", url.toString()); // Pass the original full URL as a parameter
 
     try {
